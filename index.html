@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Семейный чат | Telegram стиль</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #0e1621;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 800px;
+            height: 90vh;
+            background: #17212b;
+            border-radius: 28px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid #242f3d;
+        }
+
+        .header {
+            background: #1f2c38;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #0f1a24;
+        }
+
+        .header h2 {
+            font-weight: 500;
+            font-size: 1.3rem;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header h2::before {
+            content: "💬";
+            font-size: 1.5rem;
+        }
+
+        .logout-btn {
+            background: #3e546c;
+            border: none;
+            color: white;
+            padding: 6px 16px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .logout-btn:hover {
+            background: #526e8a;
+            transform: scale(1.02);
+        }
+
+        .logout-btn::after {
+            content: "→";
+            font-size: 1.1rem;
+        }
+
+        /* Форма входа */
+        .login-form {
+            padding: 48px 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            background: #17212b;
+            border-radius: 28px;
+        }
+
+        .login-form h3 {
+            color: #fff;
+            text-align: center;
+            font-weight: 400;
+            font-size: 2rem;
+            margin-bottom: 16px;
+            letter-spacing: -0.5px;
+        }
+
+        .login-form input {
+            padding: 16px 22px;
+            border: 1px solid #2b3b4a;
+            border-radius: 34px;
+            font-size: 1rem;
+            outline: none;
+            background: #1f2c38;
+            color: #fff;
+            transition: all 0.2s;
+        }
+
+        .login-form input::placeholder {
+            color: #8a9eb0;
+            font-weight: 300;
+        }
+
+        .login-form input:focus {
+            border-color: #5f9cea;
+            box-shadow: 0 0 0 2px rgba(95, 156, 234, 0.2);
+        }
+
+        .login-form button {
+            background: #2b5278;
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 34px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+            margin-top: 8px;
+            letter-spacing: 0.3px;
+        }
+
+        .login-form button:hover {
+            background: #3a6d9b;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .error-message {
+            color: #ff8a7a;
+            font-size: 0.95rem;
+            text-align: center;
+            margin-top: 4px;
+        }
+
+        /* Основной чат */
+        .chat-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background-color: #17212b;
+            background-image: radial-gradient(circle at 10px 10px, rgba(70, 100, 130, 0.05) 2px, transparent 2px);
+            background-size: 30px 30px;
+        }
+
+        .messages-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            scroll-behavior: smooth;
+        }
+
+        /* Сообщения с аватарками */
+        .message {
+            display: flex;
+            flex-direction: column;
+            max-width: 80%;
+            animation: messageAppear 0.3s ease;
+        }
+
+        @keyframes messageAppear {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.own {
+            align-self: flex-end;
+        }
+
+        .message-bubble {
+            background: #182533;
+            border-radius: 22px 22px 22px 6px;
+            padding: 10px 16px;
+            border: 1px solid #2b3b4a;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .own .message-bubble {
+            background: #204162;
+            border-radius: 22px 22px 6px 22px;
+            border-color: #2f6ea2;
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+
+        /* Аватарка с инициалами */
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #2b5278;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            flex-shrink: 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .own .avatar {
+            background: #3a6d9b;
+        }
+
+        .message-author {
+            font-weight: 600;
+            color: #6ab0f3;
+            font-size: 0.9rem;
+        }
+
+        .own .message-author {
+            color: #fee7a0;
+        }
+
+        .message-time {
+            color: #77919b;
+            font-size: 0.7rem;
+            margin-left: auto;
+        }
+
+        .message-text {
+            color: #f5f5f5;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-left: 42px;
+            word-break: break-word;
+        }
+
+        /* ИСПРАВЛЕНО: Фото теперь не растягиваются */
+        .message-image {
+            max-width: 100%;
+            width: auto;
+            height: auto;
+            max-height: 300px;
+            border-radius: 18px;
+            margin-top: 8px;
+            margin-left: 42px;
+            cursor: pointer;
+            border: 2px solid #3e546c;
+            transition: transform 0.2s;
+            object-fit: contain; /* Сохраняет пропорции */
+            background-color: #0e1621; /* Фон для фото с прозрачностью */
+        }
+
+        .own .message-image {
+            border-color: #2f6ea2;
+        }
+
+        .message-image:hover {
+            transform: scale(1.02);
+        }
+
+        /* Для фото без текста */
+        .message-image:only-child {
+            margin-top: 0;
+        }
+
+        /* Область ввода */
+        .input-area {
+            background: #1f2c38;
+            padding: 16px 20px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+            border-top: 1px solid #0f1a24;
+        }
+
+        .input-area textarea {
+            flex: 1;
+            border: none;
+            border-radius: 28px;
+            padding: 14px 20px;
+            font-size: 0.95rem;
+            resize: none;
+            max-height: 100px;
+            outline: none;
+            background: #17212b;
+            color: #fff;
+            border: 1px solid #2b3b4a;
+            transition: border 0.2s;
+            font-family: inherit;
+        }
+
+        .input-area textarea:focus {
+            border-color: #5f9cea;
+        }
+
+        .input-area textarea::placeholder {
+            color: #7991a8;
+        }
+
+        .input-area input[type="file"] {
+            display: none;
+        }
+
+        .attach-btn {
+            background: #2b5278;
+            border: none;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            color: white;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .attach-btn:hover {
+            background: #3a6d9b;
+            transform: scale(1.05) rotate(5deg);
+        }
+
+        .send-btn {
+            background: #2b5278;
+            border: none;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            color: white;
+            font-size: 1.3rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .send-btn:hover {
+            background: #3a6d9b;
+            transform: scale(1.05) translateX(2px);
+        }
+
+        /* ИСПРАВЛЕНО: Превью фото тоже сохраняет пропорции */
+        .photo-preview {
+            max-width: 70px;
+            max-height: 70px;
+            width: auto;
+            height: auto;
+            border-radius: 18px;
+            object-fit: contain;
+            border: 3px solid #2b5278;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+            background-color: #0e1621;
+        }
+
+        #previewContainer {
+            padding: 0 20px 16px;
+            background: #1f2c38;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 600px) {
+            .message {
+                max-width: 90%;
+            }
+            .message-text {
+                margin-left: 0;
+            }
+            .message-image {
+                margin-left: 0;
+                max-height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="header">
+            <h2>Семейный чат</h2>
+            <button id="logoutBtn" class="logout-btn hidden">Выйти</button>
+        </div>
+
+        <div id="loginBlock" class="login-form">
+            <h3>Вход в чат</h3>
+            <input type="text" id="loginName" placeholder="Ваше имя (например, Папа)" value="">
+            <input type="password" id="loginPassword" placeholder="Пароль">
+            <button id="loginBtn">Войти</button>
+            <div id="loginError" class="error-message"></div>
+        </div>
+
+        <div id="chatBlock" class="chat-main hidden">
+            <div id="messages" class="messages-area"></div>
+            <div class="input-area">
+                <label for="photoInput" class="attach-btn" title="Прикрепить фото">📷</label>
+                <input type="file" id="photoInput" accept="image/*">
+                <textarea id="messageText" placeholder="Напишите сообщение..." rows="1"></textarea>
+                <button id="sendBtn" class="send-btn">➤</button>
+            </div>
+            <div id="previewContainer" style="display: none;">
+                <img id="imagePreview" class="photo-preview" src="#" alt="Превью">
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+    <script>
+        (function() {
+            // 🔥 Твои данные Firebase
+            const firebaseConfig = {
+                apiKey: "AIzaSyDn5cSBd_T-3A-rluaYuLaZb-XINaLPyts",
+                authDomain: "familychat-3c358.firebaseapp.com",
+                databaseURL: "https://familychat-3c358-default-rtdb.firebaseio.com/",
+                projectId: "familychat-3c358",
+                storageBucket: "familychat-3c358.firebasestorage.app",
+                messagingSenderId: "830507660659",
+                appId: "1:830507660659:web:0c55b9e7176a1f8eea0106"
+            };
+
+            firebase.initializeApp(firebaseConfig);
+            const db = firebase.database();
+            const messagesRef = db.ref('messages');
+
+            const FAMILY_PASSWORD = 'family123';
+            const USER_KEY = 'current_user';
+
+            let currentUser = null;
+            let selectedPhotoDataURL = null;
+
+            // Элементы DOM
+            const loginBlock = document.getElementById('loginBlock');
+            const chatBlock = document.getElementById('chatBlock');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const loginName = document.getElementById('loginName');
+            const loginPassword = document.getElementById('loginPassword');
+            const loginBtn = document.getElementById('loginBtn');
+            const loginError = document.getElementById('loginError');
+            const messagesDiv = document.getElementById('messages');
+            const messageText = document.getElementById('messageText');
+            const sendBtn = document.getElementById('sendBtn');
+            const photoInput = document.getElementById('photoInput');
+            const imagePreview = document.getElementById('imagePreview');
+            const previewContainer = document.getElementById('previewContainer');
+
+            function checkSession() {
+                const savedUser = localStorage.getItem(USER_KEY);
+                if (savedUser) {
+                    currentUser = savedUser;
+                    showChat();
+                } else {
+                    showLogin();
+                }
+            }
+
+            function showLogin() {
+                loginBlock.classList.remove('hidden');
+                chatBlock.classList.add('hidden');
+                logoutBtn.classList.add('hidden');
+                currentUser = null;
+            }
+
+            function showChat() {
+                loginBlock.classList.add('hidden');
+                chatBlock.classList.remove('hidden');
+                logoutBtn.classList.remove('hidden');
+                messageText.value = '';
+                clearPhotoPreview();
+                listenForMessages();
+            }
+
+            function clearPhotoPreview() {
+                selectedPhotoDataURL = null;
+                photoInput.value = '';
+                previewContainer.style.display = 'none';
+                imagePreview.src = '#';
+            }
+
+            function listenForMessages() {
+                messagesRef.off();
+                messagesRef.limitToLast(200).on('value', (snapshot) => {
+                    const data = snapshot.val();
+                    if (!data) {
+                        messagesDiv.innerHTML = '';
+                        return;
+                    }
+                    const messagesArray = Object.entries(data).map(([id, msg]) => ({
+                        id,
+                        ...msg
+                    })).sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+                    renderMessages(messagesArray);
+                });
+            }
+
+            function getInitials(name) {
+                return name ? name.charAt(0).toUpperCase() : '?';
+            }
+
+            function renderMessages(messages) {
+                messagesDiv.innerHTML = '';
+                messages.forEach(msg => {
+                    const msgContainer = document.createElement('div');
+                    msgContainer.className = 'message';
+                    if (msg.author === currentUser) {
+                        msgContainer.classList.add('own');
+                    }
+
+                    // Пузырь сообщения
+                    const bubble = document.createElement('div');
+                    bubble.className = 'message-bubble';
+
+                    // Заголовок с аватаркой
+                    const header = document.createElement('div');
+                    header.className = 'message-header';
+
+                    const avatar = document.createElement('div');
+                    avatar.className = 'avatar';
+                    avatar.textContent = getInitials(msg.author);
+
+                    const authorSpan = document.createElement('span');
+                    authorSpan.className = 'message-author';
+                    authorSpan.textContent = msg.author;
+
+                    const timeSpan = document.createElement('span');
+                    timeSpan.className = 'message-time';
+                    if (msg.timestamp) {
+                        const date = new Date(msg.timestamp);
+                        timeSpan.textContent = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    }
+
+                    header.appendChild(avatar);
+                    header.appendChild(authorSpan);
+                    header.appendChild(timeSpan);
+                    bubble.appendChild(header);
+
+                    // Текст сообщения
+                    if (msg.text) {
+                        const textDiv = document.createElement('div');
+                        textDiv.className = 'message-text';
+                        textDiv.textContent = msg.text;
+                        bubble.appendChild(textDiv);
+                    }
+
+                    msgContainer.appendChild(bubble);
+
+                    // Фото (исправлено: теперь не растягивается)
+                    if (msg.photo) {
+                        const img = document.createElement('img');
+                        img.className = 'message-image';
+                        img.src = msg.photo;
+                        img.alt = 'Фото';
+                        img.addEventListener('click', () => window.open(msg.photo));
+                        img.addEventListener('load', function() {
+                            // Дополнительная проверка для сохранения пропорций
+                            this.style.width = 'auto';
+                            this.style.height = 'auto';
+                        });
+                        msgContainer.appendChild(img);
+                    }
+
+                    messagesDiv.appendChild(msgContainer);
+                });
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }
+
+            function sendMessage(text, photoDataURL) {
+                if (!currentUser) return;
+                if (!text.trim() && !photoDataURL) return;
+
+                const newMessage = {
+                    author: currentUser,
+                    text: text.trim() || '',
+                    photo: photoDataURL || null,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                };
+
+                messagesRef.push(newMessage);
+            }
+
+            photoInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) {
+                    clearPhotoPreview();
+                    return;
+                }
+                if (!file.type.startsWith('image/')) {
+                    alert('Пожалуйста, выберите изображение.');
+                    clearPhotoPreview();
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    selectedPhotoDataURL = event.target.result;
+                    imagePreview.src = selectedPhotoDataURL;
+                    previewContainer.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            });
+
+            function handleSend() {
+                const text = messageText.value;
+                if (!text.trim() && !selectedPhotoDataURL) return;
+                sendMessage(text, selectedPhotoDataURL);
+                messageText.value = '';
+                clearPhotoPreview();
+            }
+
+            messageText.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                }
+            });
+
+            sendBtn.addEventListener('click', handleSend);
+
+            loginBtn.addEventListener('click', function() {
+                const name = loginName.value.trim();
+                const password = loginPassword.value.trim();
+                if (!name) {
+                    loginError.textContent = 'Введите имя';
+                    return;
+                }
+                if (password !== FAMILY_PASSWORD) {
+                    loginError.textContent = 'Неверный пароль';
+                    return;
+                }
+                currentUser = name;
+                localStorage.setItem(USER_KEY, name);
+                showChat();
+                loginError.textContent = '';
+                loginPassword.value = '';
+            });
+
+            logoutBtn.addEventListener('click', function() {
+                localStorage.removeItem(USER_KEY);
+                messagesRef.off();
+                showLogin();
+            });
+
+            checkSession();
+        })();
+    </script>
+</body>
+</html>
